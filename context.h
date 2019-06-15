@@ -3,18 +3,15 @@
 #include <algorithm>
 #include <memory>
 #include <fstream>
-#include <thread>
 #include <array>
 #include <functional>
 #include <experimental/filesystem>
 
 #include <d3d9.h>
 #include <d3dx9.h>
-#include <dwmapi.h>
 
 #define DIRECTINPUT_VERSION 0x0800
 #include <dinput.h>
-#include <tchar.h>
 
 #include "./imgui/imgui.h"
 #include "./imgui/examples/imgui_impl_dx9.h"
