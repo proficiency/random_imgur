@@ -2,37 +2,21 @@
 
 namespace ui
 {
-	class c_child
-	{
-	public:
-		c_child( IDirect3DTexture9* image, const std::string& title ) : m_image( image ), m_title( title ), m_open( true ) {}
-
-		void draw_elements( int index )
-		{
-			ImGui::Begin( ( m_title + "##" + std::to_string( index ) ).c_str( ), &m_open, ImGuiWindowFlags_NoCollapse );
-			ImGui::Image( m_image, ImVec2( ImGui::GetWindowSize( ).x - ( ImGui::GetStyle( ).WindowPadding.x * 2 ), ImGui::GetWindowSize( ).y * 0.95f ) );
-			ImGui::End( );
-		}
-
-		bool open( )
-		{
-			return m_open;
-		}
-
-	private:
-		IDirect3DTexture9*  m_image;
-		bool				m_open;
-		std::string			m_title;
-	};
-
 	inline void draw( )
 	{
 		static IDirect3DTexture9*		image = g_render.create_texture( g_networking.download_image( ) );
 		static bool						show_styleeditor = false;
-		static std::vector< c_child >	children = {};
 		std::string					    url = util::unicode_to_ascii( ctx.m_previous_urls.back( ) );
 
-		ImGui::Begin( "random imgur", 0, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoNav | ImGuiWindowFlags_MenuBar );
+		{
+			ImVec2 size = g_render.screensize( );
+			size.x += 3.0f;
+
+			ImGui::SetNextWindowPos( ImVec2( -3, 0 ) );
+			ImGui::SetNextWindowSize( size );
+		}
+
+		ImGui::Begin( "random imgur", 0, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse  | ImGuiWindowFlags_MenuBar );
 
 		// let user customize colors and stuff, should prolly parse a file so they can save themes
 		{
@@ -93,28 +77,13 @@ namespace ui
 		if ( ImGui::Button( "save" ) )
 			D3DXSaveTextureToFileA( std::string( url.substr( strlen_ct( "https://i.imgur.com/" ) ) ).c_str( ), D3DXIFF_JPG, image, 0 );
 
-		ImGui::SameLine( );
-
-		// open image in another window
-		if ( ImGui::Button( "open in new window" ) )
-			children.push_back( c_child( image, url ) );
-
 		if ( ctx.m_previous_urls.size( ) > 1 )
 		{
 			ImGui::SameLine( );
 			ImGui::Text( "%i images viewed", ctx.m_previous_urls.size( ) );
 		}
 
-		ImGui::Image( image, ImVec2( ImGui::GetWindowSize( ).x - ( ImGui::GetStyle( ).WindowPadding.x * 2 ), ImGui::GetWindowSize( ).y * 0.85f ) );
+		ImGui::Image( image, ImVec2( ImGui::GetWindowSize( ).x - ( ImGui::GetStyle( ).WindowPadding.x * 2 ), ImGui::GetWindowContentRegionMax( ).y - 85.0f ) );
 		ImGui::End( );
-
-		// draw and maintain each child
-		for ( u32 i = 0; i < children.size( ); ++i )
-		{
-			if ( !children[i].open( ) )
-				children.erase( children.begin( ) + i );
-
-			children[i].draw_elements( i );
-		}
 	}
 }

@@ -39,7 +39,19 @@ public:
 
 		RegisterClassExA( &m_wndclass );
 
-		m_window = CreateWindow( m_wndclass.lpszClassName, "random imgur", WS_OVERLAPPEDWINDOW, 0, 0, GetSystemMetrics( SM_CXSCREEN ), GetSystemMetrics( SM_CYSCREEN ) - 20, 0, 0, m_wndclass.hInstance, 0 );
+		m_window = CreateWindow(
+			m_wndclass.lpszClassName, 
+			"random imgur",
+			WS_OVERLAPPEDWINDOW & ~WS_MAXIMIZEBOX,
+			CW_USEDEFAULT, 
+			CW_USEDEFAULT, 
+			std::min( 640, GetSystemMetrics( SM_CXSCREEN ) ), 
+			std::min( 480, GetSystemMetrics( SM_CYSCREEN ) ),
+			0,
+			0,
+			m_wndclass.hInstance, 
+			0 
+		);
 
 		ShowWindow( m_window, SW_SHOWDEFAULT );
 		UpdateWindow( m_window );
@@ -69,6 +81,8 @@ public:
 		ImGui::CreateContext( );
 		{
 			ImGuiIO& io = ImGui::GetIO( );
+			ImGuiStyle* style = &ImGui::GetStyle( );
+
 			io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
 			io.Fonts->AddFontFromFileTTF( "c:\\Windows\\Fonts\\Verdana.ttf", 16.0f, 0, io.Fonts->GetGlyphRangesDefault( ) );
 			io.Fonts->AddFontFromFileTTF( "c:\\Windows\\Fonts\\Arial.ttf", 16.0f, 0, io.Fonts->GetGlyphRangesDefault( ) );
@@ -76,6 +90,25 @@ public:
 			io.Fonts->AddFontFromFileTTF( "c:\\Windows\\Fonts\\comic.ttf", 24.0f, 0, io.Fonts->GetGlyphRangesDefault( ) );
 
 			ImGui::StyleColorsDark( );
+		
+			style->Alpha = 1.0f;
+
+			style->Colors[ImGuiCol_WindowBg] = ImVec4( 0.3f, 0.3f, 0.3f, 1.0f );
+			style->Colors[ImGuiCol_MenuBarBg] = ImVec4( 0.87f, 0.55f, 0.62f, 1.0f );
+			style->Colors[ImGuiCol_Text] = ImVec4( 0.9f, 0.9f, 0.9f, 1.0f );
+			style->Colors[ImGuiCol_FrameBg] = ImVec4( 0.97f, 0.65f, 0.72f, 1.0f );
+			style->Colors[ImGuiCol_FrameBgHovered] = ImVec4( 1.0f, 0.75f, 0.82f, 1.0f );
+			style->Colors[ImGuiCol_FrameBgActive] = ImVec4( 0.97f, 0.65f, 0.72f, 1.0f );
+
+			style->Colors[ImGuiCol_Button] = style->Colors[ImGuiCol_FrameBg];
+			style->Colors[ImGuiCol_ButtonHovered] = style->Colors[ImGuiCol_FrameBgHovered];
+			style->Colors[ImGuiCol_ButtonActive] = style->Colors[ImGuiCol_FrameBgActive];
+
+			style->FrameRounding = 6.0f;
+			style->FramePadding = ImVec2( 4.0f, 2.0f ); 
+
+			style->WindowRounding = 0.0f;
+			style->WindowBorderSize = 0.0f;
 		}
 
 		ImGui_ImplWin32_Init( m_window );
@@ -151,6 +184,10 @@ public:
 		m_callbacks.push_back( { type, func } );
 	}
 
+	ImVec2 screensize( )
+	{
+		return ImVec2( m_screensize[0], m_screensize[1] );
+	}
 private:
 	void reset( long param = 0 )
 	{
@@ -161,8 +198,8 @@ private:
 
 		if ( param != 0 )
 		{
-			m_params.BackBufferWidth = LOWORD( param );
-			m_params.BackBufferHeight = HIWORD( param );
+			m_params.BackBufferWidth = m_screensize[0] = LOWORD( param );
+			m_params.BackBufferHeight = m_screensize[1] = HIWORD( param );
 		}
 
 		ImGui_ImplDX9_CreateDeviceObjects( );
@@ -204,6 +241,7 @@ private:
 	IDirect3DDevice9*	   m_device;
 	IDirect3D9*			   m_d3d9;
 	D3DPRESENT_PARAMETERS  m_params;
+	u32					   m_screensize[2] = { 480, 320 };
 	WNDCLASSEX			   m_wndclass;
 	HWND				   m_window;
 
@@ -226,7 +264,7 @@ long __stdcall wndproc( HWND hwnd, u32 msg, u32 wide_param, long param )
 				return false;
 
 			break;
-		}
+		} 
 
 		case WM_DESTROY:
 		{
